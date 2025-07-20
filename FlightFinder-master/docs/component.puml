@@ -1,0 +1,36 @@
+@startuml component
+
+title Components 
+
+
+package "domain" {
+    [PathFinder]
+}
+
+package "application" {
+    [ConnectionFinder]
+    [AirportFinder]
+}
+
+package "infrastructure" {
+    [FlightsDataRepo]
+}
+
+package "main" {
+    [run]
+}
+
+package "webapp" {
+    [httpserver]
+}
+
+[run] --> [httpserver]: use
+[httpserver] --> [ConnectionFinder]: use
+[httpserver] --> [AirportFinder]: use
+
+[ConnectionFinder] --> [PathFinder]: use
+[ConnectionFinder] --> [FlightsDataRepo]: use
+
+[AirportFinder] --> [FlightsDataRepo]: use
+
+@enduml

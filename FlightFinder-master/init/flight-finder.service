@@ -1,0 +1,12 @@
+[Unit] 
+Description=Flight Finder Web Server 
+After=network.target 
+
+[Service] 
+Type=simple 
+Restart=always  
+ExecStart=docker run --rm --name=flight-finder -p=80:80 -v $HOME/.aws:/root/.aws mateuszmidor/flight-finder:latest
+ExecStop=docker stop flight-finder 
+                                   
+[Install] 
+WantedBy=multi-user.target

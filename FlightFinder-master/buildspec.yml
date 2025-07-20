@@ -1,0 +1,67 @@
+# This file is intended for AWS CodeBuild service
+# CodeBuild project config:
+#  - image: Managed Image, ubuntu, aws/codebuild/standard:6.0
+#  - privileged: true - needed to connect to Docker daemon
+#  - environment variables: DOCKE_USER and DOCKER PASS; downloading image from DockerHub on AWS requires authentication
+
+version: 0.2
+#env:
+#variables:
+# key: "value"
+# key: "value"
+#parameter-store:
+# key: "value"
+# key: "value"
+#secrets-manager:
+# key: secret-id:json-key:version-stage:version-id
+# key: secret-id:json-key:version-stage:version-id
+#exported-variables:
+# - variable
+# - variable
+#git-credential-helper: yes
+#batch:
+#fast-fail: true
+#build-list:
+#build-matrix:
+#build-graph:
+phases:
+  install:
+    #If you use the Ubuntu standard image 2.0 or later, you must specify runtime-versions.
+    #If you specify runtime-versions and use an image other than Ubuntu standard image 2.0, the build fails.
+    runtime-versions:
+      golang: 1.18
+      # name: version
+    # commands:
+    # - command
+    # - command
+  #pre_build:
+  #commands:
+  # - command
+  # - command
+  build:
+    commands:
+      - docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - make
+  post_build:
+    commands:
+      - make test
+
+#reports:
+#report-name-or-arn:
+#files:
+# - location
+# - location
+#base-directory: location
+#discard-paths: yes
+#file-format: JunitXml | CucumberJson
+
+# @MM: Pass the entire project together with the generated cmd/finder_web/app/apiserver to the Deploy stage in CodePipeline
+artifacts:
+  files:
+    - "**/*"
+#name: $(date +%Y-%m-%d)
+#discard-paths: yes
+#base-directory: location
+#cache:
+#paths:
+# - paths

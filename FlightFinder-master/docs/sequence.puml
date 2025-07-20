@@ -1,0 +1,51 @@
+@startuml sequence
+
+title webapp
+
+hide footbox
+' skinparam handwritten true
+' skinparam monochrome true
+' actor, participant, database, collections, queue
+'
+actor http_client as client
+
+' actor httpserver as gin
+' actor init
+' init -> httpserver: Run
+' httpserver -> gin.Engine: configure middleware
+' httpserver -> gin.Engine: configure routes
+' httpserver -> gin.Engine: Run()
+
+group Finding connections
+    client -> gin.Engine: GET /api/find?...
+    activate gin.Engine
+        gin.Engine -> ConnectionFinder: Find(from, to)
+        activate ConnectionFinder
+            ConnectionFinder -> PathFinding: paths =  FindPaths(from, to)
+            ConnectionFinder -> PathRenderer: Render(paths, flightsData)
+        return
+    return connections as JSON
+end 
+
+group Finding airport
+    client -> gin.Engine: GET /api/airports/GDN
+    activate gin.Engine
+        gin.Engine -> AirportFinder: ByIATACode(code)
+    return airport as JSON
+end
+
+group Listing airports
+    client -> gin.Engine: GET /api/airports
+    activate gin.Engine
+        gin.Engine -> AirportFinder: AllAirports()
+    return airports as JSON
+end
+
+' activate apiserver
+'     alt 200 OK
+'         client <-- apiserver: result
+'     else 400 Bad Request
+'         client <-- apiserver: error
+'     end
+' deactivate
+@enduml

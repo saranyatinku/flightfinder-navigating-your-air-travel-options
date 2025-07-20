@@ -1,0 +1,352 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="pl" xmlns="https://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>flight-finder</title>
+    <style type="text/css">
+        html {
+            height: 100%
+        }
+
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0
+        }
+
+        .row {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+
+        /* Create two columns that floats next to each other */
+        .resultList {
+            float: left;
+            width: 30%;
+            padding: 0px;
+            height: 100%;
+        }
+
+        .rightPane {
+            float: left;
+            width: 70%;
+            padding: 0px;
+            height: 100%;
+            position: relative;
+        }
+
+        .earthMap {
+            width: 100%;
+            padding: 0px;
+            height: 100%;
+            top: 0px;
+            position: relative;
+        }
+
+        .form-inline {
+            right: 20px;
+            padding: 0px;
+            text-align-last: center;
+            top: 10px;
+            position: absolute;
+            z-index: 1;
+        }
+
+        .narrow-item {
+            padding-top: 2px !important;
+            padding-bottom: 2px !important;
+        }
+
+        /* Clear floats after the columns */
+        /* .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        } */
+    </style>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> -->
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+    <!-- WebGL -->
+    <script src="https://www.webglearth.com/v2/api.js"></script>
+
+    <!-- My page scripting -->
+    <script type="text/javascript">
+        var earth = null
+        var jsonPaths = null
+
+        //<![CDATA[
+        $(document).ready(function () {
+            createEarthMap();
+        });
+
+        function createEarthMap() {
+            $("#mapContainer").html('')
+            var options = { zoom: 3.0, position: [0, 0] };
+            earth = new WE.map('mapContainer', options);
+            WE.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(earth);
+        }
+
+        // function renderPathAsHTML(paths) {
+        //     // clear path list
+        //     $( "#pathsContainer" ).html("");
+
+        //     // render paths
+        //     $.each(paths, function( index, value ) {
+        //         // $( "#pathsContainer" ).append(value.from_airport.name);
+        //         // // var points = [[paths[0].from_airport.lat, paths[0].from_airport.lon]]
+
+        //         // $.each(value.segments, function( index, value ) {
+        //         //     $( "#pathsContainer" ).append("-").append("<strong>("+value.carrier.code+")</strong>"); 
+        //         //     $( "#pathsContainer" ).append("-").append(value.to_airport.name); 
+        //         // //   points.push([value.to_airport.lat, value.to_airport.lon])
+
+        //         //     // var marker = WE.marker([value.to_airport.lat, value.to_airport.lon]).addTo(earth);
+        //         //     // marker.bindPopup(value.to_airport.name + '-' + value.to_airport.code, {maxWidth: 120, closeButton: false});
+        //         // });
+        //         var htmlPath = renderJSONPathAsHTML(value)
+        //         $( "#pathsContainer" ).append(htmlPath).append("<br>") 
+
+
+        //         // points.push([value.segments[0].to_airport.lat, value.segments[0].to_airport.lon])
+        //         // var polygonA = WE.polygon(points,  {
+        //             //     color: '#' + Math.floor(Math.random()*16777215).toString(16),
+        //             //     opacity: 1,
+        //             //     fillColor: '#f00',
+        //             //     fillOpacity: 0.0,
+        //             //     editable: false,
+        //             //     weight: 1
+        //             // }); 
+        //             // polygonA.addTo(earth);           
+        //         });
+        // }
+
+        function helo(index) {
+            alert(`clicked path no. ${index}`)
+        }
+
+        function makeItem(itemIndex) {
+            return `<a class="list-group-item list-group-item-action narrow-item" id="list-home-list" data-toggle="list" href="#list-home" role="tab" aria-controls="home" onclick="showPath(${itemIndex})" >`
+        }
+
+        function showPath(pathIndex) {
+            createEarthMap()
+            var uniqueAirports = new Map();
+
+            value = jsonPaths[pathIndex]
+            uniqueAirports.set(value.from_airport.code, value.from_airport)
+
+            $.each(value.segments, function (index, value) {
+                uniqueAirports.set(value.to_airport.code, value.to_airport)
+            });
+
+            // actually add unique airports to map
+            for (const airport of uniqueAirports.values()) {
+                var marker = WE.marker([airport.lat, airport.lon]).addTo(earth);
+                marker.bindPopup('<strong>' + airport.code + '</strong><br>' + airport.name + ', ' + airport.nation_full_name, { maxWidth: 120, closeButton: false });
+                // console.log(el);
+            }
+        }
+
+        function renderJSONPathsAsHTML(paths) {
+            // clear paths
+            $("#pathsContainer").html("");
+
+            // render paths
+            $.each(paths, function (index, path) {
+                var htmlPath = renderJSONPathAsHTML(path)
+                $("#pathsContainer").append(makeItem(index) + htmlPath + "</a>")
+            });
+        }
+
+        function renderJSONPathAsHTML(jsonPath) {
+            var htmlPath = jsonPath.from_airport.name
+            $.each(jsonPath.segments, function (index, value) {
+                htmlPath += "-" + "<strong>(" + value.carrier.code + ")</strong>";
+                htmlPath += "-" + value.to_airport.name;
+            });
+            return htmlPath
+        }
+
+        function markAirportsOnEarth(paths) {
+            createEarthMap()
+            var uniqueAirports = new Map();
+
+            $.each(paths, function (index, value) {
+                uniqueAirports.set(value.from_airport.code, value.from_airport)
+
+                $.each(value.segments, function (index, value) {
+                    uniqueAirports.set(value.to_airport.code, value.to_airport)
+                });
+
+
+                // points.push([value.segments[0].to_airport.lat, value.segments[0].to_airport.lon])
+                // var polygonA = WE.polygon(points,  {
+                //     color: '#' + Math.floor(Math.random()*16777215).toString(16),
+                //     opacity: 1,
+                //     fillColor: '#f00',
+                //     fillOpacity: 0.0,
+                //     editable: false,
+                //     weight: 1
+                // }); 
+                // polygonA.addTo(earth);           
+            });
+            // actually add unique airports to map
+            for (const airport of uniqueAirports.values()) {
+                var marker = WE.marker([airport.lat, airport.lon]).addTo(earth);
+                marker.bindPopup('<strong>' + airport.code + '</strong><br>' + airport.name + ', ' + airport.nation_full_name, { maxWidth: 120, closeButton: false });
+                // console.log(el);
+            }
+        }
+
+        function markAirportsListOnEarth(airports) {
+            createEarthMap()
+            var uniqueAirports = new Map();
+
+            // actually add unique airports to map
+            for (const airport of airports) {
+                var marker = WE.marker([airport.lat, airport.lon]).addTo(earth);
+                marker.bindPopup('<strong>' + airport.code + '</strong><br>' + airport.name + ', ' + airport.nation_full_name, { maxWidth: 120, closeButton: false });
+                // console.log(el);
+            }
+        }
+
+
+        function setFindResults(paths) {
+            jsonPaths = paths
+            renderJSONPathsAsHTML(paths)
+            markAirportsOnEarth(paths)
+        }
+
+        function setAirportsResults(airports) {
+            jsonAirports = airports
+            // renderJSONPathsAsHTML(paths)
+            markAirportsListOnEarth(airports)
+        }
+
+
+        var onFindConnections = function () {
+            $.ajax({
+                type: 'GET',
+                url: 'api/find',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: { from: $("#fromairport").val(), to: $("#toairport").val(), maxsegmentcount: $("#maxsegmentcount").val() },
+                error: function (response) {
+                    console.log(response);
+                    if (response.status == 400) {
+                        alert(response.responseJSON.error);
+                    }
+                    else {
+                        alert(response.statusText);
+                    }
+                },
+                success: function (pathArray) {
+                    if (pathArray.length == 0) {
+                        alert("nothing found")
+                    } else {
+                        setFindResults(pathArray);
+                    }
+                }
+            });
+        }
+
+        var onShowAirports = function () {
+            $.ajax({
+                type: 'GET',
+                url: 'api/airports',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: {},
+                error: function (response) {
+                    console.log(response);
+                    if (response.status == 400) {
+                        alert(response.responseJSON.error);
+                    }
+                    else {
+                        alert(response.statusText);
+                    }
+                },
+                success: function (airportList) {
+                    if (airportList.length == 0) {
+                        alert("no airports available")
+                    } else {
+                        setAirportsResults(airportList);
+                    }
+                }
+            });
+        }
+
+
+        //]]>
+    </script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <!-- RESULTS: LIST ON LEFT, MAP ON RIGHT -->
+        <div class="row">
+            <div class="resultList" style="background-color:#aaa; overflow:auto;" id="pathsContainer2">
+                <div class="col-4" style="padding-left: 10px;">
+                    <div class="list-group " id="pathsContainer" role="tabl`ist">
+                    </div>
+                </div>
+            </div>
+            <div class="rightPane" style="background-color:rgb(138, 128, 128);">
+                <!-- FLIGHT SEARCH INPUT -->
+                <form class="form-inline" id="formbig" role="form" method="get" action="">
+                    <div class="form-group">
+                        <label class="sr-only" for="fromairport">From:</label>
+                        <input type="text" class="form-control" placeholder="krk" id="fromairport" name="fromairport"
+                            value="krk">
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only" for="toairport">To:</label>
+                        <input type="text" class="form-control" placeholder="gdn" id="toairport" name="toairport"
+                            value="gdn">
+                    </div>
+                    <div class="form-group .w-50">
+                        <label class="sr-only" for="maxsegmentcount">Max segs:</label>
+                        <input type="number" min="1" max="5" class="form-control" placeholder="max segments"
+                            id="maxsegmentcount" name="maxsegmentcount" value="2">
+                    </div>
+                    <div class="form-group">
+                        <findbutton class="btn btn-danger" onclick="onFindConnections()">
+                            <span class="glyphicon glyphicon-search"></span>
+                            Connections!
+                        </findbutton>
+                        <findbutton class="btn btn-danger" onclick="onShowAirports()">
+                            <span class="glyphicon glyphicon-search"></span>
+                            Airports!
+                        </findbutton>
+                    </div>
+                </form>
+
+                <!-- MAP DRAWING AREA -->
+                <div class="earthMap" style="background-color:rgb(44, 133, 9);" id="mapContainer">
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

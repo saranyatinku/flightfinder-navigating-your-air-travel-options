@@ -1,0 +1,45 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:808768216571:task-definition/flight-finder:6",
+    "containerDefinitions": [
+        {
+            "name": "flights",
+            "image": "mateuszmidor/flight-finder:latest",
+            "cpu": 0,
+            "memory": 100,
+            "memoryReservation": 50,
+            "portMappings": [
+                {
+                    "containerPort": 80,
+                    "hostPort": 0,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "environment": [],
+            "mountPoints": [],
+            "volumesFrom": []
+        }
+    ],
+    "family": "flight-finder",
+    "revision": 6,
+    "volumes": [],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.21"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EXTERNAL",
+        "EC2"
+    ],
+    "requiresCompatibilities": [
+        "EC2"
+    ],
+    "cpu": "256",
+    "memory": "250",
+    "registeredAt": "2022-02-15T18:38:20.847Z",
+    "registeredBy": "arn:aws:iam::808768216571:user/mateusz",
+    "tags": []
+}

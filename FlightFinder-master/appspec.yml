@@ -1,0 +1,28 @@
+# This file is intended for AWS CodeDeploy service
+version: 0.0
+os: linux
+files:
+  # copy everything form the ZIP into /FlightFinder
+  - source: /
+    destination: /FlightFinder
+file_exists_behavior: OVERWRITE
+hooks:
+  BeforeInstall:
+    - location: aws_codedeploy/1-install.sh
+      timeout: 60
+      runas: root
+  AfterInstall:
+    - location: aws_codedeploy/2-build.sh
+      timeout: 300 # aws/aws-sdk-go and gin-contrib/cache module for GO is heavy
+      runas: root # run as root or "go: module cache not found: neither GOMODCACHE nor GOPATH is set"
+  ApplicationStart:
+    - location: aws_codedeploy/3-start.sh
+      timeout: 60
+      runas: root
+  ValidateService:
+    - location: aws_codedeploy/4-validate.sh
+      timeout: 60
+  ApplicationStop:
+    - location: aws_codedeploy/5-stop.sh
+      timeout: 60
+      runas: root

@@ -1,0 +1,149 @@
+openapi: 3.0.0
+info:
+  description: "Flight Finder server. See more: https://github.com/mateuszmidor/FlightFinder"
+  version: 0.3.0
+  title: FlightFinder
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+paths:
+  /api/airports/{code}:
+    get:
+      summary: Get airport details by IATA code
+      description: Get airport details by IATA code
+      operationId: GetAirportByIATACode
+      parameters:
+        - name: code
+          in: path
+          description: Airport IATA code
+          required: true
+          example: KRK
+          schema:
+            type: string
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Airport"
+        "404":
+          description: Airport IATA code not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"                
+  /api/airports:
+    get:
+      summary: IATA airport codes
+      description: IATA airport codes
+      operationId: GetAirports
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Airports"
+  /api/find:
+    get:
+      summary: Flight connections by from and to airport IATA codes
+      description: Operation returns at most 1000 results
+      operationId: FindFromToConnection
+      parameters:
+        - name: from
+          in: query
+          description: Connection FROM airport IATA code
+          required: true
+          schema:
+            type: string
+            default: krk
+        - name: to
+          in: query
+          description: Connection TO airport IATA code
+          required: true
+          schema:
+            type: string
+            default: ppt
+        - name: maxsegmentcount
+          in: query
+          description: Connection max segments count; 1 = direct flights only
+          required: true
+          schema:
+            type: integer
+            default: 2
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Connection"
+        "400":
+          description: invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+servers:
+  - url: http://localhost:8080/
+components:
+  schemas:
+    Airport:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "GDN"
+        name:
+          type: string
+          example: "GDANSK"
+        nation:
+          type: string
+          example: "PL"
+        nation_full_name:
+          type: string
+          example: "POLAND"
+        lon:
+          type: number
+          format: float
+          example: 8.570556
+        lat:
+          type: number
+          format: float
+          example: 50.038887
+    Airports:
+      type: array
+      items:
+        $ref: "#/components/schemas/Airport"
+    Carrier:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "FR"
+    Segment:
+      type: object
+      properties:
+        carrier:
+          $ref: "#/components/schemas/Carrier"
+        to_airport:
+          $ref: "#/components/schemas/Airport"
+    Connection:
+      type: object
+      properties:
+        from_airport:
+          $ref: "#/components/schemas/Airport"
+        segments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Segment"
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: 'Invalid "to" airport: GDA'
